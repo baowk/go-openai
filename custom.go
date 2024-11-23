@@ -52,10 +52,10 @@ func (c *Client) CreateCompletionCustom(ctx context.Context,
 	// 	return
 	// }
 
-	if !checkPromptType(request.Prompt) {
-		err = ErrCompletionRequestPromptTypeNotSupported
-		return
-	}
+	// if !checkPromptType(request.Prompt) {
+	// 	err = ErrCompletionRequestPromptTypeNotSupported
+	// 	return
+	// }
 
 	req, err := c.newRequest(
 		ctx,
@@ -72,18 +72,9 @@ func (c *Client) CreateCompletionCustom(ctx context.Context,
 }
 
 func (c *Client) fullURLSimple(suffix string) string {
-	baseURL := strings.TrimRight(c.config.BaseURL, "/")
-	// args := fullURLOptions{}
-	// for _, setter := range setters {
-	// 	setter(&args)
-	// }
-
-	// if c.config.APIType == APITypeAzure || c.config.APIType == APITypeAzureAD {
-	// 	baseURL = c.baseURLWithAzureDeployment(baseURL, suffix, args.model)
-	// }
-
-	// if c.config.APIVersion != "" {
-	// 	suffix = c.suffixWithAPIVersion(suffix)
-	// }
+	baseURL := c.config.BaseURL
+	if strings.HasPrefix(suffix, "/") {
+		baseURL = strings.TrimRight(baseURL, "/")
+	}
 	return fmt.Sprintf("%s%s", baseURL, suffix)
 }
