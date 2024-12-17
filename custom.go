@@ -71,6 +71,45 @@ func (c *Client) CreateCompletionCustom(ctx context.Context,
 	return
 }
 
+// CreateChatCompletionStream — API call to create a chat completion w/ streaming
+// support. It sets whether to stream back partial progress. If set, tokens will be
+// sent as data-only server-sent events as they become available, with the
+// stream terminated by a data: [DONE] message.
+func (c *Client) CreateChatCompletionStreamCustom(
+	ctx context.Context,
+	request ChatCompletionRequest, urlSuffix string,
+) (stream *ChatCompletionStream, err error) {
+	// urlSuffix := chatCompletionsSuffix
+	// if !checkEndpointSupportsModel(urlSuffix, request.Model) {
+	// 	err = ErrChatCompletionInvalidModel
+	// 	return
+	// }
+
+	request.Stream = true
+	if err = validateRequestForO1Models(request); err != nil {
+		return
+	}
+
+	req, err := c.newRequest(
+		ctx,
+		http.MethodPost,
+		c.fullURL(urlSuffix, withModel(request.Model)),
+		withBody(request),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := sendRequestStream[ChatCompletionStreamResponse](c, req)
+	if err != nil {
+		return
+	}
+	stream = &ChatCompletionStream{
+		streamReader: resp,
+	}
+	return
+}
+
 func (c *Client) fullURLSimple(suffix string) string {
 	baseURL := c.config.BaseURL
 	if strings.HasPrefix(suffix, "/") {
